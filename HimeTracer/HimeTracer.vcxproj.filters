@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="HimePathTracer">
+      <UniqueIdentifier>{48fd149a-13af-4779-8b2e-3a552814b00e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="HimeTracer.cpp" />
+    <ClCompile Include="HimePathTracer\HimePathTracer.cpp">
+      <Filter>HimePathTracer</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="HimeTracer.h" />
+    <ClInclude Include="HimePathTracer\HimePathTracer.h">
+      <Filter>HimePathTracer</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ShaderSource Include="HimePathTracer\HimePathTracer.rt.slang">
+      <Filter>HimePathTracer</Filter>
+    </ShaderSource>
+    <ShaderSource Include="HimePathTracer\HimePathTracer.slang">
+      <Filter>HimePathTracer</Filter>
+    </ShaderSource>
+    <ShaderSource Include="HimePathTracer\HimePathTracerHelpers.slang">
+      <Filter>HimePathTracer</Filter>
+    </ShaderSource>
+    <ShaderSource Include="HimePathTracer\EmissiveTriangleSampler.slang">
+      <Filter>HimePathTracer</Filter>
+    </ShaderSource>
+    <ShaderSource Include="HimePathTracer\HimePathTracerStaticParams.slang">
+      <Filter>HimePathTracer</Filter>
+    </ShaderSource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="HimePathTracer\HimePathTracer.py">
+      <Filter>HimePathTracer</Filter>
+    </None>
+  </ItemGroup>
+</Project>
