@@ -1,0 +1,35 @@
+#pragma once
+#include "Utils/HostDeviceShared.slangh"
+
+BEGIN_NAMESPACE_FALCOR
+
+struct LightTreeNode
+{
+    uint id = -1;
+    uint lightIdx = 0;
+    uint mortonCode = 0;
+    float3 intensity = float3(0, 0, 0);
+    float3 aabbMinPoint = float3(0, 0, 0);
+    float3 aabbMaxPoint = float3(0, 0, 0);
+
+    // TODO: compute padding
+    float4 paddingAndDebug = float4(0, 0, 0, 0);
+
+    bool isBogus() { return mortonCode == 0xFFFFFFFF; }
+};
+
+#ifdef HOST_CODE
+namespace CompleteBinaryTreeHelpers
+{
+#endif
+    inline int getCurrentLevelNodeCount(int level) { return 1 << level; }
+    inline int getAllNodeCount(int level) { return (1 << (level + 1)) - 1; }
+    inline int getCurrentLevelNodeStartIdx(int level) { return (1 << level) - 1; }
+    inline int getCurrentLevelNodeEndIdx(int level) { return (1 << (level + 1)) - 1; }
+    inline int getLeftChild(int nodeIdx) { return nodeIdx * 2 + 1; }
+    inline int getRightChild(int nodeIdx) { return nodeIdx * 2 + 2; }
+#ifdef HOST_CODE
+}
+#endif
+
+END_NAMESPACE_FALCOR
