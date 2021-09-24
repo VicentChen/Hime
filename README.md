@@ -3,7 +3,7 @@
 Implementation of ray tracing techniques.
 
 ## Implementations
- - [Realtime Stochastic Lightcuts](https://dqlin.xyz/pubs/2020-i3d-SLC/) [I3D 2020]
+ - [Realtime Stochastic Lightcuts](RealtimeStochasticLightcuts/) [I3D 2020, [Paper Page](https://dqlin.xyz/pubs/2020-i3d-SLC/)]
 
 ## Usage
 
