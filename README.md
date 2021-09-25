@@ -8,9 +8,10 @@ Implementation of ray tracing techniques.
 ## Usage
 
 ### Build
-1. Clone: `git clone --recursive git@github.com:VicentChen/Falcor.git`
+1. Clone [Falcor fork for Hime](https://github.com/VicentChen/Falcor): `git clone --recursive git@github.com:VicentChen/Falcor.git`.
 2. Build. (Please follow official Falcor readme)
 3. Download extra model files from: https://developer.nvidia.com/orca
+4. Build entire solution.
 
 ### Run
 1. Set `Mogwai` as start up project.
