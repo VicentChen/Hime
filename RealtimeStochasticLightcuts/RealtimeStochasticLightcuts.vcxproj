@@ -49,6 +49,10 @@
     <ShaderSource Include="MortonCodeHelpers.slang" />
     <ShaderSource Include="ReorderLightTreeLeaves.cs.slang" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include="RealtimeStochasticLightcuts.py" />
+  </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>

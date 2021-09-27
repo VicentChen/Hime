@@ -14,4 +14,8 @@
     <ShaderSource Include="MortonCodeHelpers.slang" />
     <ShaderSource Include="FindLightcuts.cs.slang" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="RealtimeStochasticLightcuts.py" />
+    <None Include="README.md" />
+  </ItemGroup>
 </Project>

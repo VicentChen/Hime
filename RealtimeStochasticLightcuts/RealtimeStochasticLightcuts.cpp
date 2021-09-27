@@ -33,9 +33,6 @@ namespace
 {
     const char kDesc[] = "Implementation of I3D2020 paper: Realtime Stochastic Lightcuts";
 
-    // Compute shader files.
-    const char kFindLightcutsFile[]           = "RenderPasses/Hime/RealtimeStochasticLightcuts/FindLightCuts.cs.slang";
-
     // Compute passes.
     const HimeComputePassDesc kGenerateLightTreeLeavesPass = { "RenderPasses/Hime/RealtimeStochasticLightcuts/GenerateLightTreeLeaves.cs.slang", "generateLightTreeLeaves" };
     const HimeComputePassDesc kReorderLightTreeLeavesPass  = { "RenderPasses/Hime/RealtimeStochasticLightcuts/ReorderLightTreeLeaves.cs.slang",  "reorderLightTreeLeaves"  };

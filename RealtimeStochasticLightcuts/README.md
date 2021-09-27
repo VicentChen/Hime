@@ -2,7 +2,10 @@
 
 Algorithm for rendering dynamic many-light scenes in realtime.
 
-![](Images/SVGF.png)
+## Result
+- Environment: RTX 2060
+- SVGF Denoised Result: (40fps)
+![](Images/Lightcuts.png)
 
 ## Usage
  - `Use CPU sorter`: Check to sort lights in CPU.
