@@ -4,6 +4,7 @@ Implementation of ray tracing techniques.
 
 ## Implementations
  - [Realtime Stochastic Lightcuts](RealtimeStochasticLightcuts/) [I3D 2020, [Paper Page](https://dqlin.xyz/pubs/2020-i3d-SLC/)]
+ - [A-Trous Filtering](ATrousWaveletFilter/) [HPG 2010, [Paper Page](https://jo.dreggn.org/home/2010_atrous.pdf)]
 
 ## Usage
 
