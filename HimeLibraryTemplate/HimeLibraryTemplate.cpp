@@ -27,10 +27,9 @@
  **************************************************************************/
 #include "HimeLibraryTemplate.h"
 
-
 namespace
 {
-    const char kDesc[] = "Insert pass description here";    
+    const char kDesc[] = "Insert pass description here";
 }
 
 // Don't remove this. it's required for hot-reload to function properly
