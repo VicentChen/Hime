@@ -1,38 +1,58 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="HimeBitonicSort">
+    <Filter Include="BitonicSort">
       <UniqueIdentifier>{0d6d68dd-ea83-41d2-80f7-330363c283b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shape">
+      <UniqueIdentifier>{a5d78421-f5bb-4a95-b0a5-655620a416aa}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitonicSort\BitonicSort.cpp">
-      <Filter>HimeBitonicSort</Filter>
+      <Filter>BitonicSort</Filter>
     </ClCompile>
     <ClCompile Include="HimeUtils.cpp" />
+    <ClCompile Include="Shape\Shape.cpp">
+      <Filter>Shape</Filter>
+    </ClCompile>
+    <ClCompile Include="Shape\VisualizeShape.cpp">
+      <Filter>Shape</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BitonicSort\BitonicSort.h">
-      <Filter>HimeBitonicSort</Filter>
+      <Filter>BitonicSort</Filter>
     </ClInclude>
     <ClInclude Include="HimeMath.h" />
     <ClInclude Include="HimeUtils.h" />
+    <ClInclude Include="Shape\Shape.h">
+      <Filter>Shape</Filter>
+    </ClInclude>
+    <ClInclude Include="Shape\VisualizeShape.h">
+      <Filter>Shape</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="BitonicSort\BitonicSortCommon.slang">
-      <Filter>HimeBitonicSort</Filter>
+      <Filter>BitonicSort</Filter>
     </None>
     <None Include="BitonicSort\IndirectArgs.cs.slang">
-      <Filter>HimeBitonicSort</Filter>
+      <Filter>BitonicSort</Filter>
     </None>
     <None Include="BitonicSort\InnerSort.cs.slang">
-      <Filter>HimeBitonicSort</Filter>
+      <Filter>BitonicSort</Filter>
     </None>
     <None Include="BitonicSort\OuterSort.cs.slang">
-      <Filter>HimeBitonicSort</Filter>
+      <Filter>BitonicSort</Filter>
     </None>
     <None Include="BitonicSort\PreSort.cs.slang">
-      <Filter>HimeBitonicSort</Filter>
+      <Filter>BitonicSort</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ShaderSource Include="Shape\VisualizeShape.3d.slang">
+      <Filter>Shape</Filter>
+    </ShaderSource>
   </ItemGroup>
 </Project>

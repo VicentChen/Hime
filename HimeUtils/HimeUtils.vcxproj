@@ -32,11 +32,15 @@
   <ItemGroup>
     <ClCompile Include="BitonicSort\BitonicSort.cpp" />
     <ClCompile Include="HimeUtils.cpp" />
+    <ClCompile Include="Shape\Shape.cpp" />
+    <ClCompile Include="Shape\VisualizeShape.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BitonicSort\BitonicSort.h" />
     <ClInclude Include="HimeMath.h" />
     <ClInclude Include="HimeUtils.h" />
+    <ClInclude Include="Shape\Shape.h" />
+    <ClInclude Include="Shape\VisualizeShape.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BitonicSort\BitonicSortCommon.slang" />
@@ -44,6 +48,9 @@
     <None Include="BitonicSort\InnerSort.cs.slang" />
     <None Include="BitonicSort\OuterSort.cs.slang" />
     <None Include="BitonicSort\PreSort.cs.slang" />
+  </ItemGroup>
+  <ItemGroup>
+    <ShaderSource Include="Shape\VisualizeShape.3d.slang" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
