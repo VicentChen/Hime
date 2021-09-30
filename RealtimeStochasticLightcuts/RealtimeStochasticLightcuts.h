@@ -29,6 +29,7 @@
 #include "../HimeUtils/BitonicSort/BitonicSort.h"
 #include "../HimeTracer/HimePathTracer/HimePathTracer.h"
 #include "LightTreeData.slangh"
+#include "../HimeUtils/Shape/VisualizeShape.h"
 
 using namespace Falcor;
 
@@ -48,6 +49,7 @@ public:
 
 protected:
     virtual void updateEmissiveTriangleTexture(RenderContext* pRenderContext, const RenderData& renderData) override;
+    virtual void updateDebugTexture(RenderContext* pRenderContext, const RenderData& renderData) override;
 
 private:
     RealtimeStochasticLightcuts(const Dictionary& dict);
@@ -86,4 +88,11 @@ private:
     ComputePass::SharedPtr mpLightTreeLeavesReorderer;
     ComputePass::SharedPtr mpLightTreeConstructor;
     ComputePass::SharedPtr mpLightcutsFinder;
+
+    struct
+    {
+        uint2 visualizeLevelRange;
+    } mDebugParams;
+
+    ShapeVisualizer::SharedPtr mpShapeVisualizer;
 };

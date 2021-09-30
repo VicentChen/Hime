@@ -2,15 +2,16 @@ from falcor import *
 
 def render_graph_DefaultRenderGraph():
     g = RenderGraph('DefaultRenderGraph')
-    loadRenderPassLibrary('ErrorMeasurePass.dll')
     loadRenderPassLibrary('AccumulatePass.dll')
     loadRenderPassLibrary('BSDFViewer.dll')
     loadRenderPassLibrary('Antialiasing.dll')
+    loadRenderPassLibrary('DebugPasses.dll')
+    loadRenderPassLibrary('ATrousWaveletFilter.dll')
     loadRenderPassLibrary('BlitPass.dll')
     loadRenderPassLibrary('RealtimeStochasticLightcuts.dll')
     loadRenderPassLibrary('CSM.dll')
-    loadRenderPassLibrary('DebugPasses.dll')
     loadRenderPassLibrary('DepthPass.dll')
+    loadRenderPassLibrary('ErrorMeasurePass.dll')
     loadRenderPassLibrary('SimplePostFX.dll')
     loadRenderPassLibrary('FLIPPass.dll')
     loadRenderPassLibrary('SkyBox.dll')
@@ -41,6 +42,8 @@ def render_graph_DefaultRenderGraph():
     g.addPass(ToneMapper, 'ToneMapper')
     SVGFPass = createPass('SVGFPass', {'Enabled': True, 'Iterations': 4, 'FeedbackTap': 1, 'VarianceEpsilon': 9.999999747378752e-05, 'PhiColor': 10.0, 'PhiNormal': 128.0, 'Alpha': 0.05000000074505806, 'MomentsAlpha': 0.20000000298023224})
     g.addPass(SVGFPass, 'SVGFPass')
+    Composite = createPass('Composite', {'mode': CompositeMode.Add, 'scaleA': 1.0, 'scaleB': 1.0, 'outputFormat': ResourceFormat.RGBA32Float})
+    g.addPass(Composite, 'Composite')
     g.addEdge('GBufferRaster.normW', 'SVGFPass.WorldNormal')
     g.addEdge('GBufferRaster.vbuffer', 'RealtimeStochasticLightcuts.vbuffer')
     g.addEdge('AccumulatePass.output', 'ToneMapper.src')
@@ -52,7 +55,9 @@ def render_graph_DefaultRenderGraph():
     g.addEdge('GBufferRaster.linearZ', 'SVGFPass.LinearZ')
     g.addEdge('GBufferRaster.mvec', 'SVGFPass.MotionVec')
     g.addEdge('SVGFPass.Filtered image', 'AccumulatePass.input')
-    g.markOutput('ToneMapper.dst')
+    g.addEdge('RealtimeStochasticLightcuts.debug', 'Composite.B')
+    g.addEdge('ToneMapper.dst', 'Composite.A')
+    g.markOutput('Composite.out')
     return g
 
 DefaultRenderGraph = render_graph_DefaultRenderGraph()

@@ -77,7 +77,25 @@ void RealtimeStochasticLightcuts::renderUI(Gui::Widgets& widget)
             recreateVars();
             mTracerParams.isLightsPerPixelChanged = true;
         }
+
+        group.checkbox("Visualize light tree", mTracerParams.enableDebugTexture, false);
+
+        if (mTracerParams.enableDebugTexture)
+        {
+            if (auto group = widget.group("Visualize light tree", true))
+            {
+                group.text("Note: 0 is the root node level of light tree.");
+                group.text("Range: 0 - " + std::to_string(mLightTree.levelCount));
+                group.var("Visualize level range min", mDebugParams.visualizeLevelRange.x, 0u, mLightTree.levelCount - 1, 1u);
+                group.var("Visualize level range max", mDebugParams.visualizeLevelRange.y, 0u, mLightTree.levelCount - 1, 1u);
+                if (mDebugParams.visualizeLevelRange.x > mDebugParams.visualizeLevelRange.y)
+                {
+                    mDebugParams.visualizeLevelRange.x = mDebugParams.visualizeLevelRange.y;
+                }
+            }
+        }
     }
+
     HimePathTracer::renderUI(widget);
 }
 
@@ -90,11 +108,56 @@ void RealtimeStochasticLightcuts::updateEmissiveTriangleTexture(RenderContext* p
     findLightcuts(pRenderContext, renderData);
 }
 
+void RealtimeStochasticLightcuts::updateDebugTexture(RenderContext* renderContext, const RenderData& renderData)
+{
+    // Copy buffer to cpu
+    Buffer::SharedPtr pLightTreeBuffer = mLightTree.GPUBuffer;
+    std::vector<LightTreeNode> lightTree(pLightTreeBuffer->getElementCount());
+    auto bufferSize = pLightTreeBuffer->getElementCount() * sizeof(LightTreeNode);
+    LightTreeNode* pLightTree = (LightTreeNode*)pLightTreeBuffer->map(Buffer::MapType::Read);
+    memcpy(lightTree.data(), pLightTree, bufferSize);
+    pLightTreeBuffer->unmap();
+
+    // compute level index
+    auto nodeCount = lightTree.size();
+    auto levelCount = uintLog2((uint)nodeCount) + 1;
+
+    std::vector<std::pair<uint, uint>> levelIndex;
+    {
+        uint beginIndex = 0; uint endIndex = 0;
+        for (uint i = 0; i <= levelCount; i++)
+        {
+            endIndex = (uint)pow(2, i);
+            levelIndex.emplace_back(std::make_pair(beginIndex, endIndex));
+            beginIndex = endIndex;
+        }
+    }
+
+    // compute transform matrix
+    WiredCubes wiredCubes;
+    for (auto i = mDebugParams.visualizeLevelRange.x; i <= mDebugParams.visualizeLevelRange.y; i++)
+    {
+        for (auto k = levelIndex[i].first; k < levelIndex[i].second; k++)
+        {
+            if (lightTree[k].isBogus()) break;
+            wiredCubes.addInstance(lightTree[k].aabbMinPoint, lightTree[k].aabbMaxPoint);
+        }
+    }
+
+    Texture::SharedPtr pDebugTexture = getDebugTexture(renderData);
+    Texture::SharedPtr pPositionTexture = getPositionTexture(renderData);
+    mpShapeVisualizer->drawWiredCubes(renderContext, wiredCubes, float3(0, 1, 0), pDebugTexture, mpScene->getCamera(), pPositionTexture);
+}
+
 RealtimeStochasticLightcuts::RealtimeStochasticLightcuts(const Dictionary& dict)
     : HimePathTracer(dict)
 {
     // Set to true here. Otherwise this will lead to darker result.
     mTracerParams.accumulateShadowRay = true;
+
+    mDebugParams.visualizeLevelRange = uint2(0, 0);
+
+    mpShapeVisualizer = ShapeVisualizer::create();
 }
 
 void RealtimeStochasticLightcuts::generateLightTreeLeaves(RenderContext* pRenderContext)
