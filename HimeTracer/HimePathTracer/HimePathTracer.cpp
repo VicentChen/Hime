@@ -48,24 +48,32 @@ namespace
     // Render pass internal channels.
     const std::string kEmissiveTriangleInternal = "EmissiveTriangle";
     const std::string kEmissiveTriangleTexname = "gEmissiveTriangle";
+    const std::string kPositionInternal = "Position";
+    const std::string kPositionInternalTexname = "gInternalPosition";
 
     const Falcor::ChannelList kInternalChannels =
     {
-        {kEmissiveTriangleInternal, kEmissiveTriangleTexname, "Emissive triangle index", true /*optional*/}, // [Hime]TODO: make this channel as a member, so we can update it's size.
+        {kEmissiveTriangleInternal, kEmissiveTriangleTexname, "Emissive triangle index", true }, // [Hime]TODO: make this channel as a member, so we can update it's size.
+        { kPositionInternal       , kPositionInternalTexname, "World space position"   , true },
     };
 
     // Render pass output channels.
     const std::string kColorOutput = "color";
     const std::string kAlbedoOutput = "albedo";
     const std::string kTimeOutput = "time";
+    const std::string kScreenDebugOutput = "debug";
 
     const Falcor::ChannelList kOutputChannels =
     {
-        { kColorOutput,     "gOutputColor",               "Output color (linear)", true /* optional */                              },
-        { kAlbedoOutput,    "gOutputAlbedo",              "Surface albedo (base color) or background color", true /* optional */    },
-        { kTimeOutput,      "gOutputTime",                "Per-pixel execution time", true /* optional */, ResourceFormat::R32Uint  },
+        { kColorOutput,       "gOutputColor",  "Output color (linear)",                           true /* optional */                           },
+        { kAlbedoOutput,      "gOutputAlbedo", "Surface albedo (base color) or background color", true /* optional */                           },
+        { kTimeOutput,        "gOutputTime",   "Per-pixel execution time",                        true /* optional */, ResourceFormat::R32Uint  },
     };
 
+    const Falcor::ChannelList kExtraOutputChannels =
+    {
+        { kScreenDebugOutput, "gOutputDebug",  "Debug output",                                    true /* optional */                           },
+    };
     // UI variables.
     // Note: To serialize these variables in render graph file, we need to modify 3 functions:
     //          * HimePathTracer::getScriptingDictionary
@@ -122,6 +130,14 @@ RenderPassReflection HimePathTracer::reflect(const CompileData& compileData)
             .format(ResourceFormat::RGBA32Float) // [Hime]TODO: We should use RGFloat here, because we only need triangle index and pdf. Currently we use extra 2 channels for debug.
             .bindFlags(ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess)
             .texture2D(mSharedParams.frameDim.x, mSharedParams.frameDim.y, 1, 1, mTracerParams.kMaxLightsPerPixel);
+    }
+
+    for (const auto& extraOutputChannel : kExtraOutputChannels)
+    {
+        reflector.addOutput(extraOutputChannel.name, extraOutputChannel.desc)
+            .format(extraOutputChannel.format)
+            .bindFlags(ResourceBindFlags::RenderTarget) // Notice that we bind all extra output channels as render target
+            .texture2D(mSharedParams.frameDim.x, mSharedParams.frameDim.y);
     }
 
     return reflector;
@@ -187,6 +203,9 @@ void HimePathTracer::execute(RenderContext* pRenderContext, const RenderData& re
     // Call shared pre-render code.
     if (!beginFrame(pRenderContext, renderData)) return;
 
+    // Clear internal and extra channels.
+    clearTextures(pRenderContext, renderData);
+
     // Update emissive triangle texture if needed.
     if (!mTracerParams.useGroundTruthShadowRay)
     {
@@ -201,6 +220,7 @@ void HimePathTracer::execute(RenderContext* pRenderContext, const RenderData& re
     // TODO: This should be moved to a more general mechanism using Slang.
     pProgram->addDefines(getValidResourceDefines(mInputChannels, renderData));
     pProgram->addDefines(getValidResourceDefines(mOutputChannels, renderData));
+    pProgram->addDefines(getValidResourceDefines(kInternalChannels, renderData));
 
     if (mUseEmissiveSampler)
     {
@@ -228,12 +248,7 @@ void HimePathTracer::execute(RenderContext* pRenderContext, const RenderData& re
     };
     for (auto channel : mInputChannels) bind(channel);
     for (auto channel : mOutputChannels) bind(channel);
-
-    // Bind emissive triangle texture if needed.
-    if (!mTracerParams.useGroundTruthShadowRay)
-    {
-        mTracer.pVars.getRootVar()[kEmissiveTriangleTexname] = renderData[kEmissiveTriangleInternal]->asTexture();
-    }
+    for (auto channel : kInternalChannels) bind(channel);
 
     // Get dimensions of ray dispatch.
     const uint2 targetDim = renderData.getDefaultTextureDims();
@@ -246,6 +261,13 @@ void HimePathTracer::execute(RenderContext* pRenderContext, const RenderData& re
     {
         PROFILE("HimePathTracer::execute()_RayTrace");
         mpScene->raytrace(pRenderContext, mTracer.pProgram.get(), mTracer.pVars, uint3(targetDim, 1));
+    }
+
+    // Update debug texture.
+    if (mTracerParams.enableDebugTexture)
+    {
+        PROFILE("Update debug texture");
+        updateDebugTexture(pRenderContext, renderData);
     }
 
     // Call shared post-render code.
@@ -262,6 +284,24 @@ void HimePathTracer::updateEmissiveTriangleTexture(RenderContext* pRenderContext
 {
     // No, we don't implement this function here.
     assert(false);
+}
+
+Texture::SharedPtr HimePathTracer::getDebugTexture(const RenderData& renderData)
+{
+    Texture::SharedPtr pDebugTexture = renderData[kScreenDebugOutput]->asTexture();
+    return pDebugTexture;
+}
+
+void HimePathTracer::updateDebugTexture(RenderContext* pRenderContext, const RenderData& renderData)
+{
+    // No, we don't implement this function here.
+    assert(false);
+}
+
+Texture::SharedPtr HimePathTracer::getPositionTexture(const RenderData& renderData)
+{
+    Texture::SharedPtr pPositionTexture = renderData[kPositionInternal]->asTexture();
+    return pPositionTexture;
 }
 
 void HimePathTracer::prepareVars()
@@ -321,4 +361,19 @@ void HimePathTracer::setStaticParams(Program* pProgram) const
     pProgram->addDefine("USE_GROUND_TRUTH_SHADOW_RAY", mTracerParams.useGroundTruthShadowRay ? "1" : "0");
     pProgram->addDefine("USE_REFLECTION_RAY", mTracerParams.useReflectionRay ? "1" : "0");
     pProgram->addDefine("ACCUMULATE_SHADOW_RAY_SAMPLES", mTracerParams.accumulateShadowRay ? "1" : "0");
+}
+
+void HimePathTracer::clearTextures(RenderContext* pRenderContext, const RenderData& renderData) const
+{
+    for (const auto& internalChannel : kInternalChannels)
+    {
+        Texture::SharedPtr pTexture = renderData[internalChannel.name]->asTexture();
+        pRenderContext->clearTexture(pTexture.get());
+    }
+
+    for (const auto& extraOutputChannel : kExtraOutputChannels)
+    {
+        Texture::SharedPtr pTexture = renderData[extraOutputChannel.name]->asTexture();
+        pRenderContext->clearTexture(pTexture.get());
+    }
 }

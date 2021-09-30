@@ -76,9 +76,9 @@ namespace Falcor
             bool useReflectionRay = true;
             bool accumulateShadowRay = false;     ///< All shadow ray in same sample(same spp) will be accumulated.
             bool isLightsPerPixelChanged = false; ///< Bool to notify listeners emissive triangle texture needs to update.
+            bool enableDebugTexture = false;      ///< Bool to enable update debug texture.
             uint lightsPerPixel = 1;              ///< Lights per pixel.
             const uint kMaxLightsPerPixel = 8;    ///< Upper bound of lights per pixel.
-
         } mTracerParams;
 
         static void registerBindings(pybind11::module& m);
@@ -88,6 +88,9 @@ namespace Falcor
 
         Texture::SharedPtr getEmissiveTriangleTexture(const RenderData& renderData);
         virtual void updateEmissiveTriangleTexture(RenderContext* pRenderContext, const RenderData& renderData);
+        Texture::SharedPtr getDebugTexture(const RenderData& renderData);
+        virtual void updateDebugTexture(RenderContext* pRenderContext, const RenderData& renderData);
+        Texture::SharedPtr getPositionTexture(const RenderData& renderData);
 
         void recreateVars() override { mTracer.pVars = nullptr; }
 
@@ -95,6 +98,7 @@ namespace Falcor
         void prepareVars();
         void setTracerData(const RenderData& renderData);
         void setStaticParams(Program* pProgram) const override;
+        void clearTextures(RenderContext* pRenderContext, const RenderData& renderData) const;
 
         // Ray tracing program.
         struct

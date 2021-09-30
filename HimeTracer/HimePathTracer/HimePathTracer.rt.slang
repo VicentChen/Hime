@@ -46,6 +46,7 @@ ParameterBlock<PathTracerData> gData;
 RWTexture2D<float4> gOutputColor;
 RWTexture2D<float4> gOutputAlbedo;
 RWTexture2D<uint> gOutputTime;
+RWTexture2D<float4> gInternalPosition;
 
 // Static configuration based on which buffers are bound.
 #define is_valid(name) (is_valid_##name != 0)
@@ -131,6 +132,7 @@ void rayGen()
     float3 outColor = float3(0, 0, 0);
     float3 outAlbedo = float3(0, 0, 0);
     float outAlpha = 0.f;
+    float3 outPosition = float3(0, 0, 0);
 
     HitInfo hit;
     ShadingData sd;
@@ -182,6 +184,7 @@ void rayGen()
         outColor *= invSpp;
         outAlbedo = sd.diffuse + sd.specular;
         outAlpha = 1.f;
+        outPosition = sd.posW;
     }
     else
     {
@@ -189,6 +192,7 @@ void rayGen()
         outColor = evalBackground(-sd.V);
         outAlbedo = outColor.rgb;
         outAlpha = kForceAlphaOne ? 1.f : 0.f;
+        outPosition = float3(0, 0, 0);
     }
 
     // DEBUG
@@ -201,4 +205,7 @@ void rayGen()
 
     // Write time.
     if (is_valid(gOutputTime)) gOutputTime[launchIndex] = timer.getElapsed();
+
+    // Write positions.
+    if (is_valid(gInternalPosition)) gInternalPosition[launchIndex] = float4(outPosition, 1);
 }
