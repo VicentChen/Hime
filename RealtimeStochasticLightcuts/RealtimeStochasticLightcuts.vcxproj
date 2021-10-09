@@ -46,7 +46,6 @@
     <ShaderSource Include="FindLightcuts.cs.slang" />
     <ShaderSource Include="GenerateLightTreeLeaves.cs.slang" />
     <ShaderSource Include="LightTreeData.slangh" />
-    <ShaderSource Include="MortonCodeHelpers.slang" />
     <ShaderSource Include="ReorderLightTreeLeaves.cs.slang" />
   </ItemGroup>
   <ItemGroup>

@@ -19,11 +19,14 @@ namespace Falcor
         void createComputePassIfNecessary(ComputePass::SharedPtr& pComputePass, int groupSize, int chunkSize, bool forceCreate) const;
     };
 
-    class HIME_UTILS_DECL HimeBufferHelpers
+    namespace HimeBufferHelpers
     {
-    public:
-        static void createAndCopyBuffer(Buffer::SharedPtr& pBuffer, uint elementSize, uint elementCount, const void* pCpuData, const std::string& bufferName);
-        static void createOrExtendBuffer(Buffer::SharedPtr& pBuffer, uint structSize, uint elementCount, const std::string& name);
-    };
+        void HIME_UTILS_DECL createAndCopyBuffer(Buffer::SharedPtr& pBuffer, uint elementSize, uint elementCount, const void* pCpuData, const std::string& bufferName);
+        void HIME_UTILS_DECL createOrExtendBuffer(Buffer::SharedPtr& pBuffer, uint structSize, uint elementCount, const std::string& name);
+    }
 
+    namespace MortonCodeHelpers
+    {
+        void HIME_UTILS_DECL updateShaderVar(ShaderVar var, uint kQuantLevels, const AABB& sceneBound);
+    }
 }

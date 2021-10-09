@@ -50,6 +50,8 @@
     <None Include="BitonicSort\PreSort.cs.slang" />
   </ItemGroup>
   <ItemGroup>
+    <ShaderSource Include="HimeMath.slang" />
+    <ShaderSource Include="HimeMortonCode.slang" />
     <ShaderSource Include="Shape\VisualizeShape.3d.slang" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

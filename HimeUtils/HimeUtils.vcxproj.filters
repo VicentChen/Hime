@@ -54,5 +54,7 @@
     <ShaderSource Include="Shape\VisualizeShape.3d.slang">
       <Filter>Shape</Filter>
     </ShaderSource>
+    <ShaderSource Include="HimeMath.slang" />
+    <ShaderSource Include="HimeMortonCode.slang" />
   </ItemGroup>
 </Project>

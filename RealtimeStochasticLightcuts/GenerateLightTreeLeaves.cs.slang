@@ -1,7 +1,7 @@
 #include "LightTreeData.slangh"
 import Scene.Scene;
 import Scene.Lights.LightCollection;
-import MortonCodeHelpers;
+import HimeUtils.HimeMortonCode;
 
 #ifndef GROUP_SIZE
     // Compile-time error if GROUP_SIZE is not defined.

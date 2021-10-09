@@ -35,9 +35,9 @@ namespace
 
     // Compute passes.
     const HimeComputePassDesc kGenerateLightTreeLeavesPass = { "RenderPasses/Hime/RealtimeStochasticLightcuts/GenerateLightTreeLeaves.cs.slang", "generateLightTreeLeaves" };
-    const HimeComputePassDesc kReorderLightTreeLeavesPass  = { "RenderPasses/Hime/RealtimeStochasticLightcuts/ReorderLightTreeLeaves.cs.slang",  "reorderLightTreeLeaves"  };
-    const HimeComputePassDesc kConstructLightTreePass      = { "RenderPasses/Hime/RealtimeStochasticLightcuts/ConstructLightTree.cs.slang",      "constructLightTree"      };
-    const HimeComputePassDesc kFindLightcutsPass           = { "RenderPasses/Hime/RealtimeStochasticLightcuts/FindLightCuts.cs.slang",           "findLightcuts"           };
+    const HimeComputePassDesc kReorderLightTreeLeavesPass  = { "RenderPasses/Hime/RealtimeStochasticLightcuts/ReorderLightTreeLeaves.cs.slang" , "reorderLightTreeLeaves"  };
+    const HimeComputePassDesc kConstructLightTreePass      = { "RenderPasses/Hime/RealtimeStochasticLightcuts/ConstructLightTree.cs.slang"     , "constructLightTree"      };
+    const HimeComputePassDesc kFindLightcutsPass           = { "RenderPasses/Hime/RealtimeStochasticLightcuts/FindLightCuts.cs.slang"          , "findLightcuts"           };
 
     // Compute shader settings.
     const uint32_t kQuantLevels = 1024; // [Hime]TODO: make as variable
@@ -182,13 +182,10 @@ void RealtimeStochasticLightcuts::generateLightTreeLeaves(RenderContext* pRender
     HimeBufferHelpers::createOrExtendBuffer(mLightTree.SortingHelperBuffer, sizeof(LightTreeNode), mLightTree.lightCount, "SortingHelperBuffer");
     HimeBufferHelpers::createOrExtendBuffer(mLightTree.SortingKeyIndexBuffer, sizeof(uint2), mLightTree.lightCount, "SortingKeyIndexBuffer");
 
-    AABB sceneBound = sceneBoundHelper();
+    MortonCodeHelpers::updateShaderVar(mpLightTreeLeavesGenerator.getRootVar(), kQuantLevels, sceneBoundHelper());
     mpLightTreeLeavesGenerator.getRootVar()["gScene"] = mpScene->getParameterBlock();
     mpLightTreeLeavesGenerator.getRootVar()["PerFrameCB"]["lightCount"] = mLightTree.lightCount;
     mpLightTreeLeavesGenerator.getRootVar()["PerFrameCB"]["levelCount"] = mLightTree.levelCount;
-    mpLightTreeLeavesGenerator.getRootVar()["PerFrameMortonCodeCB"]["quantLevels"] = kQuantLevels;
-    mpLightTreeLeavesGenerator.getRootVar()["PerFrameMortonCodeCB"]["sceneBound"]["minPoint"] = sceneBound.minPoint;
-    mpLightTreeLeavesGenerator.getRootVar()["PerFrameMortonCodeCB"]["sceneBound"]["maxPoint"] = sceneBound.maxPoint;
     mpLightTreeLeavesGenerator.getRootVar()["gLightTree"] = mLightTree.GPUBuffer;
     mpLightTreeLeavesGenerator.getRootVar()["gSortingHelper"] = mLightTree.SortingHelperBuffer;
     mpLightTreeLeavesGenerator.getRootVar()["gSortingKeyIndex"] = mLightTree.SortingKeyIndexBuffer;
@@ -250,7 +247,6 @@ void RealtimeStochasticLightcuts::constructLightTree(RenderContext* pRenderConte
 
     // create light tree construction program
     const int kMaxWorkLoad = 2048;
-    const auto sceneBound = sceneBoundHelper();
 
     kConstructLightTreePass.createComputePassIfNecessary(mpLightTreeConstructor, kGroupSize, kChunkSize, false);
 
@@ -270,13 +266,11 @@ void RealtimeStochasticLightcuts::constructLightTree(RenderContext* pRenderConte
 
         {
             PROFILE("Construct Light Tree Level " + std::to_string(dstLevelStart) + "-" + std::to_string(dstLevelEnd));
+            MortonCodeHelpers::updateShaderVar(mpLightTreeConstructor.getRootVar(), kQuantLevels, sceneBoundHelper());
             mpLightTreeConstructor.getRootVar()["PerFrameCB"]["workLoad"] = workLoad;
             mpLightTreeConstructor.getRootVar()["PerFrameCB"]["srcLevel"] = srcLevel;
             mpLightTreeConstructor.getRootVar()["PerFrameCB"]["dstLevelStart"] = dstLevelStart;
             mpLightTreeConstructor.getRootVar()["PerFrameCB"]["dstLevelEnd"] = dstLevelEnd;
-            mpLightTreeConstructor.getRootVar()["PerFrameMortonCodeCB"]["quantLevels"] = kQuantLevels;
-            mpLightTreeConstructor.getRootVar()["PerFrameMortonCodeCB"]["sceneBound"]["minPoint"] = sceneBound.minPoint;
-            mpLightTreeConstructor.getRootVar()["PerFrameMortonCodeCB"]["sceneBound"]["maxPoint"] = sceneBound.maxPoint;
             mpLightTreeConstructor.getRootVar()["gLightTree"] = mLightTree.GPUBuffer;
             mpLightTreeConstructor->execute(pRenderContext, workLoad, 1, 1);
         }
