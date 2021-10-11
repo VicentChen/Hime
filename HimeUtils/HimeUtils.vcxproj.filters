@@ -32,6 +32,7 @@
     <ClInclude Include="Shape\VisualizeShape.h">
       <Filter>Shape</Filter>
     </ClInclude>
+    <ClInclude Include="HimeMortonCode.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="BitonicSort\BitonicSortCommon.slang">

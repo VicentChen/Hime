@@ -38,6 +38,7 @@
   <ItemGroup>
     <ClInclude Include="BitonicSort\BitonicSort.h" />
     <ClInclude Include="HimeMath.h" />
+    <ClInclude Include="HimeMortonCode.h" />
     <ClInclude Include="HimeUtils.h" />
     <ClInclude Include="Shape\Shape.h" />
     <ClInclude Include="Shape\VisualizeShape.h" />
