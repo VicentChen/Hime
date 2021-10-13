@@ -61,7 +61,7 @@ private:
 
     /** This function returns a cubic bounding box.
     */
-    AABB sceneBoundHelper();
+    AABB sceneBoundHelper() const;
 
     struct
     {

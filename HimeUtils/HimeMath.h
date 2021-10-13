@@ -30,7 +30,7 @@ namespace Falcor
         return r;
     }
 
-    inline uint deinterleave_32bit(uint x)
+    inline uint deinterleave_30bits_uint(uint x)
     {
         x &= 0x09249249;                  // x = ---- 9--8 --7- -6-- 5--4 --3- -2-- 1--0
         x = (x ^ (x >> 2)) & 0x030c30c3;  // x = ---- --98 ---- 76-- --54 ---- 32-- --10
@@ -40,16 +40,16 @@ namespace Falcor
         return x;
     }
 
-    inline uint3 deinterleave_uint3(uint x)
+    inline uint3 deinterleave_30bits_uint3(uint x)
     {
         uint3 v;
-        v.z = deinterleave_32bit(x);
-        v.y = deinterleave_32bit(x >> 1);
-        v.x = deinterleave_32bit(x >> 2);
+        v.z = deinterleave_30bits_uint(x);
+        v.y = deinterleave_30bits_uint(x >> 1);
+        v.x = deinterleave_30bits_uint(x >> 2);
         return v;
     }
 
-    inline uint interleave_32bit(uint x)
+    inline uint interleave_30bits_uint(uint x)
     {
         x &= 0x000003ff;                  // x = ---- ---- ---- ---- ---- --98 7654 3210
         x = (x ^ (x << 16)) & 0xff0000ff; // x = ---- --98 ---- ---- ---- ---- 7654 3210
@@ -59,11 +59,11 @@ namespace Falcor
         return x;
     }
 
-    inline uint interleave_uint3(uint3 v)
+    inline uint interleave_30bits_uint3(uint3 v)
     {
-        uint vx = interleave_32bit(v.x);
-        uint vy = interleave_32bit(v.y);
-        uint vz = interleave_32bit(v.z);
+        uint vx = interleave_30bits_uint(v.x);
+        uint vy = interleave_30bits_uint(v.y);
+        uint vz = interleave_30bits_uint(v.z);
         return vx * 4 + vy * 2 + vz;
     }
 }

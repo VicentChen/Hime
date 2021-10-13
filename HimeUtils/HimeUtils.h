@@ -16,7 +16,7 @@ namespace Falcor
         const std::string mEntryPoint;
 
         void createComputePass(ComputePass::SharedPtr& pComputePass, Program::DefineList defines, int groupSize, int chunkSize) const;
-        void createComputePassIfNecessary(ComputePass::SharedPtr& pComputePass, int groupSize, int chunkSize, bool forceCreate) const;
+        void createComputePassIfNecessary(ComputePass::SharedPtr& pComputePass, int groupSize, int chunkSize, bool forceCreate = false) const;
     };
 
     namespace HimeBufferHelpers

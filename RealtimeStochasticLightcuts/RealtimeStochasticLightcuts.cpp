@@ -40,9 +40,9 @@ namespace
     const HimeComputePassDesc kFindLightcutsPass           = { "RenderPasses/Hime/RealtimeStochasticLightcuts/FindLightCuts.cs.slang"          , "findLightcuts"           };
 
     // Compute shader settings.
-    const uint32_t kQuantLevels = 1024; // [Hime]TODO: make as variable
-    const uint32_t kGroupSize = 512;
-    const uint32_t kChunkSize = 16;
+    const uint kQuantLevels = 1024; // [Hime]TODO: make as variable
+    const uint kGroupSize = 512;
+    const uint kChunkSize = 16;
 }
 
 // Don't remove this. it's required for hot-reload to function properly
@@ -154,9 +154,9 @@ RealtimeStochasticLightcuts::RealtimeStochasticLightcuts(const Dictionary& dict)
 {
     // Set to true here. Otherwise this will lead to darker result.
     mTracerParams.accumulateShadowRay = true;
-
     mDebugParams.visualizeLevelRange = uint2(0, 0);
 
+    mpLightTreeLeavesSorter = HimeBitonicSort::create(true); // we are using key index, which is uint2 = 64bit
     mpShapeVisualizer = ShapeVisualizer::create();
 }
 
@@ -220,9 +220,6 @@ void RealtimeStochasticLightcuts::sortTreeLeaves(RenderContext* pRenderContext)
     {
         {
             PROFILE("GPU Sort Light Tree Leaves");
-            // sort key-index pair
-            if (mpLightTreeLeavesSorter == nullptr)
-                mpLightTreeLeavesSorter = HimeBitonicSort::create(true); // we are using key index, which is uint2 = 64bit
 
             mpLightTreeLeavesSorter->sort(pRenderContext, mLightTree.SortingKeyIndexBuffer, mLightTree.lightCount);
         }
@@ -325,7 +322,7 @@ void RealtimeStochasticLightcuts::findLightcuts(RenderContext* pRenderContext, c
     mpLightcutsFinder->execute(pRenderContext, uint3(mSharedParams.frameDim, 1));
 }
 
-AABB RealtimeStochasticLightcuts::sceneBoundHelper()
+AABB RealtimeStochasticLightcuts::sceneBoundHelper() const
 {
     const auto& sceneBound = mpScene->getSceneBounds();
     AABB hackedSceneBound = sceneBound;

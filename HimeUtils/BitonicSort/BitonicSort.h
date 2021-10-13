@@ -25,7 +25,8 @@ namespace Falcor
         */
         static SharedPtr create(bool isSortingKeyIndexPair);
 
-        void sort(RenderContext* pRenderContext, Buffer::SharedPtr pKeyIndexList, uint32_t elementCount, uint32_t counterOffset = 0, bool IsPartiallyPreSorted = false, bool isAscending = true);
+        void sort(RenderContext* pRenderContext, Buffer::SharedPtr pKeyIndexList, uint elementCount, uint counterOffset = 0, bool IsPartiallyPreSorted = false, bool isAscending = true);
+        void sort(RenderContext* pRenderContext, Buffer::SharedPtr pKeyIndexList, Buffer::SharedPtr pCounterBuffer, uint counterOffset, bool IsPartiallyPreSorted = false, bool isAscending = true);
 
     private:
         HimeBitonicSort(bool isSorting64Bits = false);

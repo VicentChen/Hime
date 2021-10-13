@@ -57,5 +57,6 @@
     </ShaderSource>
     <ShaderSource Include="HimeMath.slang" />
     <ShaderSource Include="HimeMortonCode.slang" />
+    <ShaderSource Include="HimeSampler.slang" />
   </ItemGroup>
 </Project>

@@ -53,8 +53,8 @@ namespace
 
     const Falcor::ChannelList kInternalChannels =
     {
-        {kEmissiveTriangleInternal, kEmissiveTriangleTexname, "Emissive triangle index", true }, // [Hime]TODO: make this channel as a member, so we can update it's size.
-        { kPositionInternal       , kPositionInternalTexname, "World space position"   , true },
+        { kEmissiveTriangleInternal, kEmissiveTriangleTexname, "Emissive triangle index", true }, // [Hime]TODO: make this channel as a member, so we can update it's size.
+        { kPositionInternal        , kPositionInternalTexname, "World space position"   , true },
     };
 
     // Render pass output channels.

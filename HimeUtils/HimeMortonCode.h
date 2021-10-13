@@ -6,7 +6,7 @@ namespace Falcor
 {
     inline float3 computePosByMortonCode(const uint mortonCode, const float quantLevels, const AABB& sceneBound)
     {
-        float3 quantPos = float3(deinterleave_uint3(mortonCode)) / quantLevels;
+        float3 quantPos = float3(deinterleave_30bits_uint3(mortonCode)) / quantLevels;
         float3 pos = quantPos * sceneBound.extent() + sceneBound.minPoint;
         return pos;
     }
