@@ -178,9 +178,9 @@ void RealtimeStochasticLightcuts::generateLightTreeLeaves(RenderContext* pRender
     mLightTree.levelCount = uintLog2(mLightTree.leafCount) + 1;
     mLightTree.nodeCount = CompleteBinaryTreeHelpers::getAllNodeCount(mLightTree.levelCount - 1);
 
-    HimeBufferHelpers::createOrExtendBuffer(mLightTree.GPUBuffer, sizeof(LightTreeNode), mLightTree.nodeCount, "LightTreeBuffer");
-    HimeBufferHelpers::createOrExtendBuffer(mLightTree.SortingHelperBuffer, sizeof(LightTreeNode), mLightTree.lightCount, "SortingHelperBuffer");
-    HimeBufferHelpers::createOrExtendBuffer(mLightTree.SortingKeyIndexBuffer, sizeof(uint2), mLightTree.lightCount, "SortingKeyIndexBuffer");
+    HimeBufferHelpers::createOrExtendBuffer(mLightTree.GPUBuffer, sizeof(LightTreeNode), mLightTree.nodeCount, "Lightcuts::LightTreeBuffer");
+    HimeBufferHelpers::createOrExtendBuffer(mLightTree.SortingHelperBuffer, sizeof(LightTreeNode), mLightTree.lightCount, "Lightcuts::SortingHelperBuffer");
+    HimeBufferHelpers::createOrExtendBuffer(mLightTree.SortingKeyIndexBuffer, sizeof(uint2), mLightTree.lightCount, "Lightcuts::SortingKeyIndexBuffer");
 
     MortonCodeHelpers::updateShaderVar(mpLightTreeLeavesGenerator.getRootVar(), kQuantLevels, sceneBoundHelper());
     mpLightTreeLeavesGenerator.getRootVar()["gScene"] = mpScene->getParameterBlock();
