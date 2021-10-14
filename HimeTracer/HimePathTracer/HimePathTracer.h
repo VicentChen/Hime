@@ -86,10 +86,21 @@ namespace Falcor
 
         HimePathTracer(const Dictionary& dict);
 
-        Texture::SharedPtr getEmissiveTriangleTexture(const RenderData& renderData);
+        /** This function will update emissive if <b>mTracerParams.useGroundTruthShadowRay is false</b>.
+
+            \note <b>mTracerParams.useGroundTruthShadowRay</b> has alread be bound to:\n
+            Hime Path Tracer Params -> Ray Configurations -> Use ground truth shadow ray
+         */
         virtual void updateEmissiveTriangleTexture(RenderContext* pRenderContext, const RenderData& renderData);
-        Texture::SharedPtr getDebugTexture(const RenderData& renderData);
+
+        /** This function will update debug texture if <b>mTracerParams.enableDebugTexture is true</b>.
+
+            \note Remember to bind <b>mTracerParams.enableDebugTexture</b> to UI.
+         */
         virtual void updateDebugTexture(RenderContext* pRenderContext, const RenderData& renderData);
+
+        Texture::SharedPtr getEmissiveTriangleTexture(const RenderData& renderData);
+        Texture::SharedPtr getDebugTexture(const RenderData& renderData);
         Texture::SharedPtr getPositionTexture(const RenderData& renderData);
 
         void recreateVars() override { mTracer.pVars = nullptr; }

@@ -1,3 +1,4 @@
+#pragma once
 #include "Falcor.h"
 #include "../HimeUtils.h"
 

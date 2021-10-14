@@ -40,6 +40,7 @@ namespace Falcor
             mpCounterBuffer->setName("CounterBuffer");
         }
         mpCounterBuffer->setBlob(&elementCount, 0, sizeof(uint32_t));
+        const uint32_t ElementSizeBytes = pKeyIndexList->getElementSize();
         const uint32_t MaxNumElements = pKeyIndexList->getElementCount();
         const uint32_t AlignedMaxNumElements = AlignPowerOfTwo(MaxNumElements);
         const uint32_t MaxIterations = Log2(std::max(2048u, AlignedMaxNumElements)) - 10;
@@ -95,6 +96,7 @@ namespace Falcor
     {
         PROFILE("Hime bitonic sort");
 
+        const uint32_t ElementSizeBytes = pKeyIndexList->getElementSize();
         const uint32_t MaxNumElements = pKeyIndexList->getElementCount();
         const uint32_t AlignedMaxNumElements = AlignPowerOfTwo(MaxNumElements);
         const uint32_t MaxIterations = Log2(std::max(2048u, AlignedMaxNumElements)) - 10;

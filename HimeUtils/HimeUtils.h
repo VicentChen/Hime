@@ -22,7 +22,10 @@ namespace Falcor
     namespace HimeBufferHelpers
     {
         void HIME_UTILS_DECL createAndCopyBuffer(Buffer::SharedPtr& pBuffer, uint elementSize, uint elementCount, const void* pCpuData, const std::string& bufferName);
-        void HIME_UTILS_DECL createOrExtendBuffer(Buffer::SharedPtr& pBuffer, uint structSize, uint elementCount, const std::string& name);
+        void HIME_UTILS_DECL createOrExtendBuffer(Buffer::SharedPtr& pBuffer, uint elementSize, uint elementCount, const std::string& name);
+        void HIME_UTILS_DECL copyBufferBackToCPU(Buffer::SharedPtr& pBuffer, uint elementSize, uint elementCount, void* pCpuData);
+
+        // [Hime]TODO: templates
     }
 
     namespace MortonCodeHelpers

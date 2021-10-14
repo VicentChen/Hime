@@ -1,5 +1,8 @@
 __exported import Utils.Sampling.SampleGenerator;
 
+/** Returns a random number in [range.x, range.y).
+    PDF = 1 / (range.y - range.x)
+*/
 void sampleRangeUniformly<S : ISampleGenerator>(const uint2 range, inout S sg, out uint idx, out float pdf)
 {
     float delta = float(range.y) - float(range.x) + 1;

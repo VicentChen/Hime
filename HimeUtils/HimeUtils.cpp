@@ -36,13 +36,20 @@ void HimeBufferHelpers::createAndCopyBuffer(Buffer::SharedPtr& pBuffer, uint ele
     pBuffer->setBlob(pCpuData, 0, bufferSize);
 }
 
-void HimeBufferHelpers::createOrExtendBuffer(Buffer::SharedPtr& pBuffer, uint structSize, uint elementCount, const std::string& name)
+void HimeBufferHelpers::createOrExtendBuffer(Buffer::SharedPtr& pBuffer, uint elementSize, uint elementCount, const std::string& name)
 {
     if (pBuffer == nullptr || pBuffer->getElementCount() < elementCount)
     {
-        pBuffer = Buffer::createStructured(structSize, elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, Buffer::CpuAccess::None, nullptr, false);
+        pBuffer = Buffer::createStructured(elementSize, elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, Buffer::CpuAccess::None, nullptr, false);
         pBuffer->setName(name);
     }
+}
+
+void HimeBufferHelpers::copyBufferBackToCPU(Buffer::SharedPtr& pBuffer, uint elementSize, uint elementCount, void* pCpuData)
+{
+    void const* pGpuData = pBuffer->map(Buffer::MapType::Read);
+    memcpy(pCpuData, pGpuData, elementSize * elementCount);
+    pBuffer->unmap();
 }
 
 void MortonCodeHelpers::updateShaderVar(ShaderVar var, uint kQuantLevels, const AABB& sceneBound)
