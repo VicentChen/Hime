@@ -3,6 +3,12 @@
 This is an implementation of SIGGRAPH 2020 paper: *Spatiotemporal Reservoir Resampling for Real-Time Ray Tracing with Dynamic Direct Lighting*.
 
 ## Results
+- Environment: RTX 2060
+- Performance(Frame time, SVGF enabled): ~53ms
+
+| Raw sampling output | SVGF filtered result |
+| ------------------- | -------------------- |
+| ![](Images/Raw.png) | ![](Images/Filtered.png) |
 
 ## Implementation Notes
 
