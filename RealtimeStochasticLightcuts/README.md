@@ -1,6 +1,6 @@
 # Realtime Stochastic Lightcuts
 
-Algorithm for rendering dynamic many-light scenes in realtime.
+This is an implementation of I3D 2020 paper: *Realtime Stochastic Lightcuts*.
 
 ## Result
 - Environment: RTX 2060

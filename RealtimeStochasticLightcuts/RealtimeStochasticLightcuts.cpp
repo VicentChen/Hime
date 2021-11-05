@@ -66,28 +66,40 @@ std::string RealtimeStochasticLightcuts::getDesc() { return kDesc; }
 
 void RealtimeStochasticLightcuts::renderUI(Gui::Widgets& widget)
 {
-    if (auto group = widget.group("Realtime Stochastic Lightcuts", true))
-    {
-        group.checkbox("Use CPU sorter", mLightTree.useCPUSorter, false);
+    auto group = widget.group("Realtime Stochastic Lightcuts", true);
 
-        if (group.var("Cut size", mTracerParams.lightsPerPixel, 1u, mTracerParams.kMaxLightsPerPixel, 1u))
+    {
+        auto constructLightTreeUI = group.group("Construct light tree", true);
+        constructLightTreeUI.checkbox("Use CPU sorter", mLightTree.useCPUSorter, false);
+    }
+
+    {
+        auto lightcutsUI = group.group("Find lightcuts", true);
+        if (lightcutsUI.var("Cut size", mTracerParams.lightsPerPixel, 1u, mTracerParams.kMaxLightsPerPixel, 1u))
         {
             // It's better to bind lightSamplesPerVertex to lightsPerPixel.
             mSharedParams.lightSamplesPerVertex = mTracerParams.lightsPerPixel;
             recreateVars();
             mTracerParams.isLightsPerPixelChanged = true;
         }
+    }
 
-        group.checkbox("Visualize light tree", mTracerParams.enableDebugTexture, false);
+    {
+        auto rtUI = group.group("Ray tracing", true);
+        rtUI.var("Shadowrays per pixel", mTracerParams.lightsPerPixel, 1u, mTracerParams.kMaxLightsPerPixel, 1u);
+    }
 
+    {
+        auto debugUI = group.group("Debug", true);
+        debugUI.checkbox("Visualize light tree", mTracerParams.enableDebugTexture, false);
         if (mTracerParams.enableDebugTexture)
         {
-            if (auto group = widget.group("Visualize light tree", true))
+            if (auto debugUI = widget.group("Visualize light tree", true))
             {
-                group.text("Note: 0 is the root node level of light tree.");
-                group.text("Range: 0 - " + std::to_string(mLightTree.levelCount));
-                group.var("Visualize level range min", mDebugParams.visualizeLevelRange.x, 0u, mLightTree.levelCount - 1, 1u);
-                group.var("Visualize level range max", mDebugParams.visualizeLevelRange.y, 0u, mLightTree.levelCount - 1, 1u);
+                debugUI.text("Note: 0 is the root node level of light tree.");
+                debugUI.text("Range: 0 - " + std::to_string(mLightTree.levelCount));
+                debugUI.var("Visualize level range min", mDebugParams.visualizeLevelRange.x, 0u, mLightTree.levelCount - 1, 1u);
+                debugUI.var("Visualize level range max", mDebugParams.visualizeLevelRange.y, 0u, mLightTree.levelCount - 1, 1u);
                 if (mDebugParams.visualizeLevelRange.x > mDebugParams.visualizeLevelRange.y)
                 {
                     mDebugParams.visualizeLevelRange.x = mDebugParams.visualizeLevelRange.y;
@@ -166,10 +178,10 @@ void RealtimeStochasticLightcuts::generateLightTreeLeaves(RenderContext* pRender
     assert(mpScene);
 
     // Create leaf nodes generating program
-    if (mpLightTreeLeavesGenerator == nullptr)
+    if (mpGenerateLightTreeLeavesPass == nullptr)
     {
         Program::DefineList defines = mpScene->getSceneDefines();
-        kGenerateLightTreeLeavesPass.createComputePass(mpLightTreeLeavesGenerator, defines, kGroupSize, kChunkSize);
+        kGenerateLightTreeLeavesPass.createComputePass(mpGenerateLightTreeLeavesPass, defines, kGroupSize, kChunkSize);
     }
 
     mLightTree.lightCount = mpScene->getLightCollection(pRenderContext)->getTotalLightCount();
@@ -182,15 +194,15 @@ void RealtimeStochasticLightcuts::generateLightTreeLeaves(RenderContext* pRender
     HimeBufferHelpers::createOrExtendBuffer(mLightTree.SortingHelperBuffer, sizeof(LightTreeNode), mLightTree.lightCount, "Lightcuts::SortingHelperBuffer");
     HimeBufferHelpers::createOrExtendBuffer(mLightTree.SortingKeyIndexBuffer, sizeof(uint2), mLightTree.lightCount, "Lightcuts::SortingKeyIndexBuffer");
 
-    MortonCodeHelpers::updateShaderVar(mpLightTreeLeavesGenerator.getRootVar(), kQuantLevels, sceneBoundHelper());
-    mpLightTreeLeavesGenerator.getRootVar()["gScene"] = mpScene->getParameterBlock();
-    mpLightTreeLeavesGenerator.getRootVar()["PerFrameCB"]["lightCount"] = mLightTree.lightCount;
-    mpLightTreeLeavesGenerator.getRootVar()["PerFrameCB"]["levelCount"] = mLightTree.levelCount;
-    mpLightTreeLeavesGenerator.getRootVar()["gLightTree"] = mLightTree.GPUBuffer;
-    mpLightTreeLeavesGenerator.getRootVar()["gSortingHelper"] = mLightTree.SortingHelperBuffer;
-    mpLightTreeLeavesGenerator.getRootVar()["gSortingKeyIndex"] = mLightTree.SortingKeyIndexBuffer;
+    MortonCodeHelpers::updateShaderVar(mpGenerateLightTreeLeavesPass.getRootVar(), kQuantLevels, sceneBoundHelper());
+    mpGenerateLightTreeLeavesPass.getRootVar()["gScene"] = mpScene->getParameterBlock();
+    mpGenerateLightTreeLeavesPass.getRootVar()["PerFrameCB"]["lightCount"] = mLightTree.lightCount;
+    mpGenerateLightTreeLeavesPass.getRootVar()["PerFrameCB"]["levelCount"] = mLightTree.levelCount;
+    mpGenerateLightTreeLeavesPass.getRootVar()["gLightTree"] = mLightTree.GPUBuffer;
+    mpGenerateLightTreeLeavesPass.getRootVar()["gSortingHelper"] = mLightTree.SortingHelperBuffer;
+    mpGenerateLightTreeLeavesPass.getRootVar()["gSortingKeyIndex"] = mLightTree.SortingKeyIndexBuffer;
 
-    mpLightTreeLeavesGenerator->execute(pRenderContext, mLightTree.leafCount, 1, 1);
+    mpGenerateLightTreeLeavesPass->execute(pRenderContext, mLightTree.leafCount, 1, 1);
 }
 
 void RealtimeStochasticLightcuts::sortTreeLeaves(RenderContext* pRenderContext)
@@ -225,15 +237,15 @@ void RealtimeStochasticLightcuts::sortTreeLeaves(RenderContext* pRenderContext)
         }
         PROFILE("Reorder Light Tree Leaves");
         {
-            kReorderLightTreeLeavesPass.createComputePassIfNecessary(mpLightTreeLeavesReorderer, kGroupSize, kChunkSize, false);
+            kReorderLightTreeLeavesPass.createComputePassIfNecessary(mpReorderLightTreeLeavesPass, kGroupSize, kChunkSize, false);
 
-            mpLightTreeLeavesReorderer.getRootVar()["PerFrameCB"]["lightCount"] = mLightTree.lightCount;
-            mpLightTreeLeavesReorderer.getRootVar()["PerFrameCB"]["levelCount"] = mLightTree.levelCount;
-            mpLightTreeLeavesReorderer.getRootVar()["gLightTree"] = mLightTree.GPUBuffer;
-            mpLightTreeLeavesReorderer.getRootVar()["gSortingHelper"] = mLightTree.SortingHelperBuffer;
-            mpLightTreeLeavesReorderer.getRootVar()["gSortingKeyIndex"] = mLightTree.SortingKeyIndexBuffer;
+            mpReorderLightTreeLeavesPass.getRootVar()["PerFrameCB"]["lightCount"] = mLightTree.lightCount;
+            mpReorderLightTreeLeavesPass.getRootVar()["PerFrameCB"]["levelCount"] = mLightTree.levelCount;
+            mpReorderLightTreeLeavesPass.getRootVar()["gLightTree"] = mLightTree.GPUBuffer;
+            mpReorderLightTreeLeavesPass.getRootVar()["gSortingHelper"] = mLightTree.SortingHelperBuffer;
+            mpReorderLightTreeLeavesPass.getRootVar()["gSortingKeyIndex"] = mLightTree.SortingKeyIndexBuffer;
 
-            mpLightTreeLeavesReorderer->execute(pRenderContext, uint3(mLightTree.lightCount, 1, 1));
+            mpReorderLightTreeLeavesPass->execute(pRenderContext, uint3(mLightTree.lightCount, 1, 1));
         }
     }
 }
@@ -245,7 +257,7 @@ void RealtimeStochasticLightcuts::constructLightTree(RenderContext* pRenderConte
     // create light tree construction program
     const int kMaxWorkLoad = 2048;
 
-    kConstructLightTreePass.createComputePassIfNecessary(mpLightTreeConstructor, kGroupSize, kChunkSize, false);
+    kConstructLightTreePass.createComputePassIfNecessary(mpConstructLightTreePass, kGroupSize, kChunkSize, false);
 
     for (int srcLevel = mLightTree.levelCount - 1; srcLevel > 0;)
     {
@@ -263,13 +275,13 @@ void RealtimeStochasticLightcuts::constructLightTree(RenderContext* pRenderConte
 
         {
             PROFILE("Construct Light Tree Level " + std::to_string(dstLevelStart) + "-" + std::to_string(dstLevelEnd));
-            MortonCodeHelpers::updateShaderVar(mpLightTreeConstructor.getRootVar(), kQuantLevels, sceneBoundHelper());
-            mpLightTreeConstructor.getRootVar()["PerFrameCB"]["workLoad"] = workLoad;
-            mpLightTreeConstructor.getRootVar()["PerFrameCB"]["srcLevel"] = srcLevel;
-            mpLightTreeConstructor.getRootVar()["PerFrameCB"]["dstLevelStart"] = dstLevelStart;
-            mpLightTreeConstructor.getRootVar()["PerFrameCB"]["dstLevelEnd"] = dstLevelEnd;
-            mpLightTreeConstructor.getRootVar()["gLightTree"] = mLightTree.GPUBuffer;
-            mpLightTreeConstructor->execute(pRenderContext, workLoad, 1, 1);
+            MortonCodeHelpers::updateShaderVar(mpConstructLightTreePass.getRootVar(), kQuantLevels, sceneBoundHelper());
+            mpConstructLightTreePass.getRootVar()["PerFrameCB"]["workLoad"] = workLoad;
+            mpConstructLightTreePass.getRootVar()["PerFrameCB"]["srcLevel"] = srcLevel;
+            mpConstructLightTreePass.getRootVar()["PerFrameCB"]["dstLevelStart"] = dstLevelStart;
+            mpConstructLightTreePass.getRootVar()["PerFrameCB"]["dstLevelEnd"] = dstLevelEnd;
+            mpConstructLightTreePass.getRootVar()["gLightTree"] = mLightTree.GPUBuffer;
+            mpConstructLightTreePass->execute(pRenderContext, workLoad, 1, 1);
         }
 
         srcLevel = dstLevelStart;
@@ -280,7 +292,7 @@ void RealtimeStochasticLightcuts::findLightcuts(RenderContext* pRenderContext, c
 {
     PROFILE("Find Lightcuts");
 
-    if (mpLightcutsFinder == nullptr || mTracerParams.isLightsPerPixelChanged)
+    if (mpFindLightcutsPass == nullptr || mTracerParams.isLightsPerPixelChanged)
     {
         // [Hime]TODO: may be we will modify "MAX_LIGHT_SAMPLES" and regenerate this program
         assert(mpScene);
@@ -290,7 +302,7 @@ void RealtimeStochasticLightcuts::findLightcuts(RenderContext* pRenderContext, c
         defines.add("NUM_LIGHT_SAMPLES", std::to_string(mTracerParams.lightsPerPixel));
         defines.add("USE_VBUFFER", mSharedParams.useVBuffer ? "1" : "0");
         defines.add("GBUFFER_ADJUST_SHADING_NORMALS", mGBufferAdjustShadingNormals ? "1" : "0");
-        kFindLightcutsPass.createComputePass(mpLightcutsFinder, defines, kGroupSize, kChunkSize);
+        kFindLightcutsPass.createComputePass(mpFindLightcutsPass, defines, kGroupSize, kChunkSize);
 
         mTracerParams.isLightsPerPixelChanged = false;
     }
@@ -304,22 +316,22 @@ void RealtimeStochasticLightcuts::findLightcuts(RenderContext* pRenderContext, c
     {
         if (!desc.texname.empty())
         {
-            auto pGlobalVars = mpLightcutsFinder.getRootVar();
+            auto pGlobalVars = mpFindLightcutsPass.getRootVar();
             pGlobalVars[desc.texname] = renderData[desc.name]->asTexture();
         }
     };
     for (auto channel : mInputChannels) bind(channel);
 
-    mpLightcutsFinder.getRootVar()["gScene"] = mpScene->getParameterBlock(); // [Hime]TODO: Do we need this?
-    mpLightcutsFinder.getRootVar()["PerFrameCB"]["dispatchDim"] = mSharedParams.frameDim;
-    mpLightcutsFinder.getRootVar()["PerFrameCB"]["frameCount"] = mSharedParams.frameCount;
-    mpLightcutsFinder.getRootVar()["PerFrameCB"]["levelCount"] = mLightTree.levelCount;
-    mpLightcutsFinder.getRootVar()["PerFrameCB"]["errorLimit"] = mLightTree.errorLimit;
-    mpLightcutsFinder.getRootVar()["PerFrameCB"]["sceneLightBoundRadius"] = sceneBound.radius();
-    mpLightcutsFinder.getRootVar()["gLightTree"] = mLightTree.GPUBuffer;
-    mpLightcutsFinder.getRootVar()["gLightIndex"] = pLightIndexTexture;
+    mpFindLightcutsPass.getRootVar()["gScene"] = mpScene->getParameterBlock(); // [Hime]TODO: Do we need this?
+    mpFindLightcutsPass.getRootVar()["PerFrameCB"]["dispatchDim"] = mSharedParams.frameDim;
+    mpFindLightcutsPass.getRootVar()["PerFrameCB"]["frameCount"] = mSharedParams.frameCount;
+    mpFindLightcutsPass.getRootVar()["PerFrameCB"]["levelCount"] = mLightTree.levelCount;
+    mpFindLightcutsPass.getRootVar()["PerFrameCB"]["errorLimit"] = mLightTree.errorLimit;
+    mpFindLightcutsPass.getRootVar()["PerFrameCB"]["sceneLightBoundRadius"] = sceneBound.radius();
+    mpFindLightcutsPass.getRootVar()["gLightTree"] = mLightTree.GPUBuffer;
+    mpFindLightcutsPass.getRootVar()["gLightIndex"] = pLightIndexTexture;
 
-    mpLightcutsFinder->execute(pRenderContext, uint3(mSharedParams.frameDim, 1));
+    mpFindLightcutsPass->execute(pRenderContext, uint3(mSharedParams.frameDim, 1));
 }
 
 AABB RealtimeStochasticLightcuts::sceneBoundHelper() const

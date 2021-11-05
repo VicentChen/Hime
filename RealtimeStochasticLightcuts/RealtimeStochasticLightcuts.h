@@ -83,11 +83,11 @@ private:
         Buffer::SharedPtr SortingKeyIndexBuffer; ///< GPU buffer stores key(value) and index(leaf index in buffer).
     } mLightTree;
 
-    ComputePass::SharedPtr mpLightTreeLeavesGenerator;
+    ComputePass::SharedPtr mpGenerateLightTreeLeavesPass;
     HimeBitonicSort::SharedPtr mpLightTreeLeavesSorter;
-    ComputePass::SharedPtr mpLightTreeLeavesReorderer;
-    ComputePass::SharedPtr mpLightTreeConstructor;
-    ComputePass::SharedPtr mpLightcutsFinder;
+    ComputePass::SharedPtr mpReorderLightTreeLeavesPass;
+    ComputePass::SharedPtr mpConstructLightTreePass;
+    ComputePass::SharedPtr mpFindLightcutsPass;
 
     struct
     {
