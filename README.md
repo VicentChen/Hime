@@ -3,10 +3,11 @@
 Implementation of ray tracing techniques.
 
 ## Implementations
- - [Spatiotemporal Reservoir Resampling for Real-time Ray Tracing with Dynamic Direct Lighting](ReSTIR/) [SIGGRAPH 2020, [Paper Page](https://cs.dartmouth.edu/wjarosz/publications/bitterli20spatiotemporal.html)]
- - [Realtime Stochastic Lightcuts](RealtimeStochasticLightcuts/) [I3D 2020, [Paper Page](https://dqlin.xyz/pubs/2020-i3d-SLC/)]
- - [Edge-avoiding À-Trous Wavelet Transform for Fast Global Illumination Filtering](ATrousWaveletFilter/) [HPG 2010, [Paper Page](https://jo.dreggn.org/home/2010_atrous.pdf)]
-
+| Conference | Paper | Project Page | Result |
+| ----------------- | ----- | ------------ | ------ |
+| SIGGRAPH 2020 | [*Spatiotemporal Reservoir Resampling for Real-time Ray Tracing with Dynamic Direct Lighting*](https://cs.dartmouth.edu/wjarosz/publications/bitterli20spatiotemporal.html) | [ReSTIR](ReSTIR/) | ![](ReSTIR/Images/Filtered.png) |
+| I3D 2020 | [*Realtime Stochastic Lightcuts*](https://dqlin.xyz/pubs/2020-i3d-SLC/) | [RealtimeStochasticLightcuts](RealtimeStochasticLightcuts/) | ![](RealtimeStochasticLightcuts/Images/Lightcuts.png) |
+| HPG 2010 | [*Edge-avoiding À-Trous Wavelet Transform for Fast Global Illumination Filtering*](https://jo.dreggn.org/home/2010_atrous.pdf) | [ATrousWaveletFilter](ATrousWaveletFilter/) | ![](ATrousWaveletFilter/Images/CornellBox.png) |
 ## Usage
 
 ### Documents
