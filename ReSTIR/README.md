@@ -1,5 +1,7 @@
 # ReSTIR
 
+(This document contains formula and diagram, please read with plugin Markdown Preview Enhanced(available both in [VSCode](https://github.com/shd101wyy/vscode-markdown-preview-enhanced) and [Atom](https://github.com/shd101wyy/markdown-preview-enhanced)).)
+
 This is an implementation of SIGGRAPH 2020 paper: *Spatiotemporal Reservoir Resampling for Real-Time Ray Tracing with Dynamic Direct Lighting*.
 
 ## Results
