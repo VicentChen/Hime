@@ -5,6 +5,7 @@ import Scene.Scene;
 import Scene.ShadingData;
 __exported import EmissiveTriangleSampler;
 __exported import RenderPasses.Shared.PathTracer.PathTracerHelpers;
+__exported import HimePathTracerStaticParams;
 
 Texture2DArray<float4> gEmissiveTriangle;
 
@@ -124,7 +125,16 @@ bool sampleEmissiveTriangle<S : ISampleGenerator, Material : IMaterial>(const Pa
             float trianglePdf = emissiveTriangle.y;
 
             TriangleLightSample lightSample;
-            bool valid = emissiveSampler.sampleLight(rayOrigin, sd.N, triangleIdx, trianglePdf, sg, lightSample);
+            bool valid = false; 
+            if (kSampleWithProvidedUV)
+            {
+                float2 uv = emissiveTriangle.zw; // Provided u stored in zw channel.
+                valid = emissiveSampler.sampleLightWithProvidedUV(rayOrigin, sd.N, triangleIdx, trianglePdf, uv, lightSample);
+            }
+            else
+            {
+                valid = emissiveSampler.sampleLight(rayOrigin, sd.N, triangleIdx, trianglePdf, sg, lightSample);
+            }
 
             // Reject sample if lower hemisphere.
             if (!valid || dot(sd.N, lightSample.dir) < kMinCosTheta) return false;

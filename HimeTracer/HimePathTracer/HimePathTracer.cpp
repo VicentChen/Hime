@@ -83,6 +83,8 @@ namespace
     const char kUseGroundTruthShadowRay[] = "useGroundTruthShadowRay";
     const char kAccumulateShadowRay[] = "accumulateShadowRay";
     const char kUseReflectionRay[] = "useReflectionRay";
+    const char kSampleWithProvidedUV[] = "sampleWithProvidedUV";
+    const char kIgnoreShadowRayVisibility[] = "ignoreShadowRayVisibility";
 }
 
 const char* HimePathTracer::sDesc = "Hime path tracer";
@@ -96,8 +98,10 @@ Dictionary HimePathTracer::getScriptingDictionary()
 {
     Dictionary d = PathTracer::getScriptingDictionary();
     d[kUseGroundTruthShadowRay] = mTracerParams.useGroundTruthShadowRay;
-    d[kAccumulateShadowRay] = mTracerParams.accumulateShadowRay;
     d[kUseReflectionRay] = mTracerParams.useReflectionRay;
+    d[kIgnoreShadowRayVisibility] = mTracerParams.ignoreShadowRayVisibility;
+    d[kAccumulateShadowRay] = mTracerParams.accumulateShadowRay;
+    d[kSampleWithProvidedUV] = mTracerParams.sampleWithProvidedUV;
     return d;
 }
 
@@ -105,8 +109,10 @@ void HimePathTracer::registerBindings(pybind11::module& m)
 {
     pybind11::class_<HimePathTracer, RenderPass, HimePathTracer::SharedPtr> pass(m, "HimePathTracer");
     pass.def_property(kUseGroundTruthShadowRay, &HimePathTracer::getUseGroundTruthShadowRay, &HimePathTracer::setUseGroundTruthShadowRay);
-    pass.def_property(kAccumulateShadowRay, &HimePathTracer::getAccumulateShadowRay, &HimePathTracer::setAccumulateShadowRay);
     pass.def_property(kUseReflectionRay, &HimePathTracer::getUseReflectionRay, &HimePathTracer::setUseReflectionRay);
+    pass.def_property(kIgnoreShadowRayVisibility, &HimePathTracer::getIgnoreShadowRayVisibility, &HimePathTracer::setIgnoreShadowRayVisibility);
+    pass.def_property(kAccumulateShadowRay, &HimePathTracer::getAccumulateShadowRay, &HimePathTracer::setAccumulateShadowRay);
+    pass.def_property(kSampleWithProvidedUV, &HimePathTracer::getSampleWithProvidedUV, &HimePathTracer::setSampleWithProvidedUV);
 }
 
 HimePathTracer::HimePathTracer(const Dictionary& dict)
@@ -117,6 +123,8 @@ HimePathTracer::HimePathTracer(const Dictionary& dict)
         if (key == kUseGroundTruthShadowRay) mTracerParams.useGroundTruthShadowRay = value;
         else if (key == kAccumulateShadowRay) mTracerParams.accumulateShadowRay = value;
         else if (key == kUseReflectionRay) mTracerParams.useReflectionRay = value;
+        else if (key == kSampleWithProvidedUV) mTracerParams.sampleWithProvidedUV = value;
+        else if (key == kIgnoreShadowRayVisibility) mTracerParams.ignoreShadowRayVisibility = value;
     }
 }
 
@@ -136,7 +144,7 @@ RenderPassReflection HimePathTracer::reflect(const CompileData& compileData)
     {
         reflector.addOutput(extraOutputChannel.name, extraOutputChannel.desc)
             .format(extraOutputChannel.format)
-            .bindFlags(ResourceBindFlags::RenderTarget) // Notice that we bind all extra output channels as render target
+            .bindFlags(ResourceBindFlags::RenderTarget | ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess) // Notice that we bind all extra output channels as render target
             .texture2D(mSharedParams.frameDim.x, mSharedParams.frameDim.y);
     }
 
@@ -178,21 +186,21 @@ void HimePathTracer::setScene(RenderContext* pRenderContext, const Scene::Shared
 
 void HimePathTracer::renderUI(Gui::Widgets& widget)
 {
-    if (auto group = widget.group("Hime Path Tracer Params", false))
+    auto group = widget.group("Hime Path Tracer Params", false);
+    if (auto rayConfGroup = group.group("Ray Configurations", true))
     {
-        if (auto rayConfGroup = widget.group("Ray Configurations", false))
-        {
-            group.checkbox("Use ground truth shadow ray", mTracerParams.useGroundTruthShadowRay, false);
-            group.checkbox("Use reflection ray", mTracerParams.useReflectionRay, false);
-            group.checkbox("Accumulate ground truth shadow ray", mTracerParams.accumulateShadowRay, false);
-        }
+        group.checkbox("Use ground truth shadow ray", mTracerParams.useGroundTruthShadowRay, false);
+        group.checkbox("Use reflection ray", mTracerParams.useReflectionRay, false);
+        group.checkbox("Ignore shadow ray visibility", mTracerParams.ignoreShadowRayVisibility, false);
+        group.checkbox("Accumulate ground truth shadow ray", mTracerParams.accumulateShadowRay, false);
+        group.checkbox("Sample emissive triangle texture with provided UV", mTracerParams.sampleWithProvidedUV, false);
+    }
 
-        if (group.var("Num of emissive triangles per pixel", mTracerParams.lightsPerPixel, 1u, mTracerParams.kMaxLightsPerPixel, 1u))
-        {
-            // [Hime]TODO: Currently only support emissive triangles sampling.
-            // Regenerate emissive texture if number of triangle samples changed.
-            mTracerParams.isLightsPerPixelChanged = true;
-        }
+    if (group.var("Num of emissive triangles per pixel", mTracerParams.lightsPerPixel, 1u, mTracerParams.kMaxLightsPerPixel, 1u))
+    {
+        // [Hime]TODO: Currently only support emissive triangles sampling.
+        // Regenerate emissive texture if number of triangle samples changed.
+        mTracerParams.isLightsPerPixelChanged = true;
     }
 
     PathTracer::renderUI(widget);
@@ -295,7 +303,6 @@ Texture::SharedPtr HimePathTracer::getDebugTexture(const RenderData& renderData)
 void HimePathTracer::updateDebugTexture(RenderContext* pRenderContext, const RenderData& renderData)
 {
     // No, we don't implement this function here.
-    assert(false);
 }
 
 Texture::SharedPtr HimePathTracer::getPositionTexture(const RenderData& renderData)
@@ -359,8 +366,10 @@ void HimePathTracer::setStaticParams(Program* pProgram) const
     // Set HimePathTracer static parameters.
     pProgram->addDefine("HIME_PATH_TRACER_PARAM", "1");
     pProgram->addDefine("USE_GROUND_TRUTH_SHADOW_RAY", mTracerParams.useGroundTruthShadowRay ? "1" : "0");
+    pProgram->addDefine("IGNORE_SHADOW_RAY_VISIBILITY", mTracerParams.ignoreShadowRayVisibility ? "1" : "0");
     pProgram->addDefine("USE_REFLECTION_RAY", mTracerParams.useReflectionRay ? "1" : "0");
     pProgram->addDefine("ACCUMULATE_SHADOW_RAY_SAMPLES", mTracerParams.accumulateShadowRay ? "1" : "0");
+    pProgram->addDefine("SAMPLE_WITH_PROVIDED_UV", mTracerParams.sampleWithProvidedUV ? "1" : "0");
 }
 
 void HimePathTracer::clearTextures(RenderContext* pRenderContext, const RenderData& renderData) const

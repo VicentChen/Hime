@@ -58,8 +58,32 @@ struct EmissiveTriangleSampler
         float triangleSelectionPdf = trianglePdf;
 
         // Sample the triangle uniformly.
-        float2 u = sampleNext2D(sg);
-        if (!sampleTriangle(posW, triangleIndex, u, ls)) return false;
+        float2 uv = sampleNext2D(sg);
+        if (!sampleTriangle(posW, triangleIndex, uv, ls)) return false;
+
+        // The final probability density is the product of the sampling probabilities.
+        ls.pdf *= triangleSelectionPdf;
+        return true;
+    }
+
+    /** Draw a single light sample with provided uv.
+        \param[in] posW Shading point in world space.
+        \param[in] normalW Normal at the shading point in world space.
+        \param[in] triangleIndex Chosen triangle.
+        \param[in] trianglePdf Pdf of chosen triangle.
+        \param[in] uv Random float2 for point selection.
+        \param[out] ls Light sample. Only valid if true is returned.
+        \return True if a sample was generated, false otherwise.
+    */
+    bool sampleLightWithProvidedUV(const float3 posW, const float3 normalW, const uint triangleIndex, const float trianglePdf, const float2 uv, out TriangleLightSample ls)
+    {
+        if (gScene.lightCollection.getActiveTriangleCount() == 0) return false;
+
+        uint triangleCount = gScene.lightCollection.getTriangleCount();
+        float triangleSelectionPdf = trianglePdf;
+
+        // Sample the triangle uniformly.
+        if (!sampleTriangle(posW, triangleIndex, uv, ls)) return false;
 
         // The final probability density is the product of the sampling probabilities.
         ls.pdf *= triangleSelectionPdf;

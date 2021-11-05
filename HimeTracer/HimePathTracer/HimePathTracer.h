@@ -52,20 +52,24 @@ namespace Falcor
 
         static SharedPtr create(RenderContext* pRenderContext, const Dictionary& dict);
 
+        virtual RenderPassReflection reflect(const CompileData& compileData) override;
         Dictionary getScriptingDictionary() override;
         virtual std::string getDesc() override { return sDesc; }
-        virtual RenderPassReflection reflect(const CompileData& compileData) override;
         virtual void setScene(RenderContext* pRenderContext, const Scene::SharedPtr& pScene) override;
         virtual void renderUI(Gui::Widgets& widget) override;
         virtual void execute(RenderContext* pRenderContext, const RenderData& renderData) override;
 
         // Scripting functions
         void setUseGroundTruthShadowRay(bool useGroundTruthShadowRay) { mTracerParams.useGroundTruthShadowRay = useGroundTruthShadowRay; }
-        void setAccumulateShadowRay(bool accumulateShadowRay) { mTracerParams.accumulateShadowRay = accumulateShadowRay; }
         void setUseReflectionRay(bool useReflectionRay) { mTracerParams.useReflectionRay = useReflectionRay; }
+        void setIgnoreShadowRayVisibility(bool ignoreShadowRayVisibility) { mTracerParams.ignoreShadowRayVisibility = ignoreShadowRayVisibility; }
+        void setAccumulateShadowRay(bool accumulateShadowRay) { mTracerParams.accumulateShadowRay = accumulateShadowRay; }
+        void setSampleWithProvidedUV(bool sampleWithProvidedUV) { mTracerParams.sampleWithProvidedUV = sampleWithProvidedUV; }
         bool getUseGroundTruthShadowRay() const { return mTracerParams.useGroundTruthShadowRay; }
-        bool getAccumulateShadowRay() const { return mTracerParams.accumulateShadowRay; }
         bool getUseReflectionRay() const { return mTracerParams.useReflectionRay; }
+        bool getIgnoreShadowRayVisibility() const { return mTracerParams.ignoreShadowRayVisibility; }
+        bool getAccumulateShadowRay() const { return mTracerParams.accumulateShadowRay; }
+        bool getSampleWithProvidedUV() const { return mTracerParams.sampleWithProvidedUV; }
 
         static const char* sDesc;
 
@@ -74,11 +78,13 @@ namespace Falcor
         {
             bool useGroundTruthShadowRay = true;
             bool useReflectionRay = true;
-            bool accumulateShadowRay = false;     ///< All shadow ray in same sample(same spp) will be accumulated.
-            bool isLightsPerPixelChanged = false; ///< Bool to notify listeners emissive triangle texture needs to update.
-            bool enableDebugTexture = false;      ///< Bool to enable update debug texture.
-            uint lightsPerPixel = 1;              ///< Lights per pixel.
-            const uint kMaxLightsPerPixel = 8;    ///< Upper bound of lights per pixel.
+            bool ignoreShadowRayVisibility = false; ///< Whether all shadow rays are visible and ray tracing needed.
+            bool accumulateShadowRay = false;       ///< All shadow ray in same sample(same spp) will be accumulated.
+            bool sampleWithProvidedUV = false;      ///< Whether sample emissive triangle with provided uv.
+            bool isLightsPerPixelChanged = false;   ///< Bool to notify listeners emissive triangle texture needs to update.
+            bool enableDebugTexture = false;        ///< Bool to enable update debug texture.
+            uint lightsPerPixel = 1;                ///< Lights per pixel.
+            const uint kMaxLightsPerPixel = 8;      ///< Upper bound of lights per pixel.
         } mTracerParams;
 
         static void registerBindings(pybind11::module& m);

@@ -2,11 +2,19 @@
 
 using namespace Falcor;
 
-void HimeComputePassDesc::createComputePass(ComputePass::SharedPtr& pComputePass, Program::DefineList defines, int groupSize, int chunkSize) const
+void HimeComputePassDesc::createComputePass(ComputePass::SharedPtr& pComputePass, Program::DefineList defines, int groupSize, int chunkSize, const std::string& shaderModel) const
 {
     if (groupSize != 0) defines.add("GROUP_SIZE", std::to_string(groupSize));
     if (chunkSize != 0) defines.add("CHUNK_SIZE", std::to_string(chunkSize));
-    pComputePass = ComputePass::create(mFile, mEntryPoint, defines);
+
+    Program::Desc d;
+    d.addShaderLibrary(mFile).csEntry(mEntryPoint);
+    if (!shaderModel.empty())
+    {
+        d.setShaderModel(shaderModel);
+    }
+
+    pComputePass = ComputePass::create(d, defines);
 }
 
 void HimeComputePassDesc::createComputePassIfNecessary(ComputePass::SharedPtr& pComputePass, int groupSize, int chunkSize, bool forceCreate) const
@@ -18,6 +26,13 @@ void HimeComputePassDesc::createComputePassIfNecessary(ComputePass::SharedPtr& p
         if (chunkSize != 0) defines.add("CHUNK_SIZE", std::to_string(chunkSize));
         createComputePass(pComputePass, defines, groupSize, chunkSize);
     }
+}
+
+void HimeRenderPassHelpers::bindChannel(ShaderVar var, const ChannelList& channelList, uint8_t channelIndex, const RenderData& renderData, const std::string& texname)
+{
+    const ChannelDesc& channel = channelList[channelIndex];
+    const std::string& channelTexname = texname.empty() ? channel.texname : texname;
+    var[channelTexname] = renderData[channel.name]->asTexture();
 }
 
 void HimeBufferHelpers::createAndCopyBuffer(Buffer::SharedPtr& pBuffer, uint elementSize, uint elementCount, const void* pCpuData, const std::string& bufferName)
@@ -39,6 +54,15 @@ void HimeBufferHelpers::createAndCopyBuffer(Buffer::SharedPtr& pBuffer, uint ele
 void HimeBufferHelpers::createOrExtendBuffer(Buffer::SharedPtr& pBuffer, uint elementSize, uint elementCount, const std::string& name)
 {
     if (pBuffer == nullptr || pBuffer->getElementCount() < elementCount)
+    {
+        pBuffer = Buffer::createStructured(elementSize, elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, Buffer::CpuAccess::None, nullptr, false);
+        pBuffer->setName(name);
+    }
+}
+
+void HimeBufferHelpers::createOrResizeBuffer(Buffer::SharedPtr& pBuffer, uint elementSize, uint elementCount, const std::string& name)
+{
+    if (pBuffer == nullptr || pBuffer->getElementCount() != elementCount)
     {
         pBuffer = Buffer::createStructured(elementSize, elementCount, ResourceBindFlags::ShaderResource | ResourceBindFlags::UnorderedAccess, Buffer::CpuAccess::None, nullptr, false);
         pBuffer->setName(name);

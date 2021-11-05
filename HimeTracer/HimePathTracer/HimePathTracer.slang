@@ -46,8 +46,6 @@ __exported import RenderPasses.Shared.PathTracer.InteriorListHelpers;
 __exported import RenderPasses.Shared.PathTracer.RayFootprint;
 __exported import Utils.Debug.PixelDebug;
 
-import HimePathTracerStaticParams;
-
 static const bool kForceOpaque = !kUseAlphaTest;
 
 /** Shared path tracer data.
@@ -322,7 +320,12 @@ void evalDirect(const PathTracerData pt, ShadingData sd, inout PathData path)
             }
         }
 
-        bool visible = traceShadowRay(path.origin, shadowRay.rayParams.xyz, shadowRay.rayParams.w, valid);
+        // We only trace shadow ray if necessary. By default all shadow rays are visible.
+        bool visible = true;
+        if (!kIgnoreShadowRayVisibility)
+        {
+            visible = traceShadowRay(path.origin, shadowRay.rayParams.xyz, shadowRay.rayParams.w, valid);
+        }
         path.L += visible ? shadowRay.Lr : float3(0.f);
     }
 }
